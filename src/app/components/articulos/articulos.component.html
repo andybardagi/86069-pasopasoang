@@ -1,0 +1,200 @@
+<div>
+    <h3>{{Titulo}} <small>{{TituloAccionABMC[AccionABMC]}}</small></h3>
+    <!-- Formulario Filtro de búsqueda, se ve cuando la AccionABMC es "L"(busqueda/listado)-->
+    <form name="FormBusqueda" [formGroup]="FormBusqueda" class="bg-light" *ngIf="AccionABMC == 'L'">
+        <div class="form-group row">
+            <label class="col-form-label col-sm-2 offset-sm-1">
+                Nombre:
+            </label>
+            <div class="col-sm-3">
+                <input type="text" name="Nombre" formControlName="Nombre" class="form-control" />
+            </div>
+            <label class="col-form-label col-sm-2  offset-sm-1">
+                Activo:
+            </label>
+            <div class="col-sm-3">
+                <select class="form-control" name="Activo" formControlName="Activo">
+                    <option *ngFor="let opt of OpcionesActivo" [ngValue]="opt.Id">
+                        ‌{{ opt.Nombre }}
+                    </option>
+                </select>
+            </div>
+        </div>
+        <!-- Botones -->
+        <div class="row justify-content-center">
+            <button type="button" class="btn btn-primary" (click)="Pagina=1;Buscar();">
+                <i class="fa fa-search"> </i> Buscar
+            </button>
+            &nbsp;
+            <button type="button" class="btn btn-primary" (click)="Agregar()">
+                <i class="fa fa-plus"> </i>
+                Agregar
+            </button>
+        </div>
+    </form>
+    <!-- Tabla de resutados de busqueda y Paginador-->
+    <div id="divTablaResultados" *ngIf="AccionABMC == 'L' &&  Items!=null && Items.length > 0">
+
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th class="text-center">Nombre</th>
+                    <th class="text-center">Precio</th>
+                    <th class="text-center">Stock</th>
+                    <th class="text-center">Fecha de Alta</th>
+                    <th class="text-center">Activo</th>
+                    <th class="text-center text-nowrap">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of Items">
+                    <td>{{item.Nombre | uppercase}}</td>
+                    <td class="text-right">{{item.Precio | currency}}</td>
+                    <td class="text-right">{{item.Stock}}</td>
+                    <td>{{item.FechaAlta| date:'dd/MM/yyyy'}}</td>
+                    <td>{{item.Activo ? 'SI' : 'NO'}}</td>
+                    <td class="text-center text-nowrap">
+                        <button type="button" class="btn btn-sm btn-outline-primary" title="Consultar"
+                            (click)="Consultar(item)">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" title="Modificar"
+                            (click)="Modificar(item)">
+                            <i class="fa fa-pencil"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-{{ item.Activo ? 'danger':'success'}}"
+                            title="{{item.Activo ? 'Desactivar':'Activar'}}" (click)="ActivarDesactivar(item)">
+                            <i class="fa fa-{{item.Activo ? 'times':'check'}}"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- Paginador-->
+        <div id="divPaginador">
+            <div class="row bg-light">
+                <div class="col">
+                    <span class="label label-default">Registros: {{RegistrosTotal}}</span>
+                </div>
+                <div class="col text-center">
+                    Directiva paginador aqui
+                </div>
+                <div class="col text-right">
+                    <button type="button" class="btn btn-primary" (click)="ImprimirListado()">
+                        <i class="fa fa-print"></i>
+                        Imprimir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--No se encontraron registros-->
+    <div id="divMsjFormBusqueda" class="alert alert-info" *ngIf="AccionABMC == 'L' &&  Items!=null && Items.length== 0">
+        <i class="fa fa-exclamation-sign"></i>{{Mensajes['SD']}}
+        <!-- texto: No se encontraron registros -->
+    </div>
+    <!-- Registro en Alta,Modificacion o Consulta -->
+    <form name="FormRegistro" [formGroup]="FormRegistro" class="bg-light" *ngIf="AccionABMC != 'L'">
+
+        <fieldset [disabled]="AccionABMC==='C'">
+            <!--campo nombre-->
+            <div class="form-group row">
+                <label class="col-form-label col-sm-2 offset-sm-2" for="Nombre">
+                    Nombre <span class="text-danger">*</span>
+                </label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" formControlName="Nombre" />
+                </div>
+            </div>
+
+            <!--campo precio-->
+            <div class="row form-group">
+                <label class="col-form-label col-sm-2 offset-sm-2" for="Precio">
+                    Precio <span class="text-danger">*</span>
+                </label>
+                <div class="col-sm-6">
+                    <input type="text" name="Precio" class="form-control" formControlName="Precio" />
+                </div>
+            </div>
+
+
+            <!--campo stock-->
+            <div class="form-group row">
+                <label class="col-form-label col-sm-2 offset-sm-2" for="Stock">
+                    Stock <span class="text-danger">*</span>
+                </label>
+                <div class="col-sm-6">
+                    <input type="text" name="Stock" class="form-control" formControlName="Stock" />
+
+                </div>
+            </div>
+
+            <!--campo codigodebarra-->
+            <div class="form-group row">
+                <label class="col-form-label col-sm-2 offset-sm-2" for="CodigoDeBarra">
+                    Codigo De Barra <span class="text-danger">*</span>
+                </label>
+                <div class="col-sm-6">
+                    <input type="text" name="CodigoDeBarra" class="form-control" formControlName="CodigoDeBarra" />
+
+                </div>
+            </div>
+
+            <!--campo idarticulofamilia-->
+            <div class="form-group row">
+                <label class="col-form-label col-sm-2 offset-sm-2" for="IdArticuloFamilia">
+                    Familia <span class="text-danger">*</span>
+                </label>
+                <div class="col-sm-6">
+                    <select name="IdArticuloFamilia" class="form-control" formControlName="IdArticuloFamilia">
+                        <option *ngFor="let opt of Familias">
+                            ‌{{ opt.Nombre }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!--campo fechaalta-->
+            <div class="form-group row">
+                <label class="col-form-label col-sm-2 offset-sm-2">
+                    Fecha de alta <span class="text-danger">*</span>
+                </label>
+                <div class="col-sm-6">
+                    <input class="form-control" name="FechaAlta" formControlName="FechaAlta" />
+                </div>
+            </div>
+
+            <!--campo activo-->
+            <div class="form-group row">
+                <label class="col-form-label col-sm-2 offset-sm-2" for="Activo">Activo</label>
+                <div class="col-sm-6">
+                    <select name="Activo" [disabled]="true" class="form-control" formControlName="Activo">
+                        <option *ngFor="let opt of OpcionesActivo" [ngValue]="opt.IdArticuloFamilia">
+                            ‌{{ opt.Nombre }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Botones Grabar, Cancelar/Volver' -->
+        <div class="row justify-content-center">
+            <button type="button" class="btn btn-primary" (click)="Grabar()"
+                *ngIf=" AccionABMC == 'A'  || AccionABMC == 'M'">
+                <i class="fa fa-check"></i> Grabar
+            </button>
+            &nbsp;
+            <button type="button" class="btn btn-warning" (click)="Volver()">
+                <i class="fa fa-undo"></i> {{AccionABMC == 'A' || AccionABMC == 'M' ? 'Cancelar' : 'Volver'}}
+            </button>
+        </div>
+
+        <!--texto: Revisar los datos ingresados...-->
+        <div id="divMsjFormRegistro" class="row alert alert-danger" *ngIf="false">
+            <i class="fa fa-exclamation-sign"></i>{{Mensajes['RD']}}
+        </div>
+
+    </form>
+
+</div>
